@@ -1,0 +1,116 @@
+Sub SummarizeYear()
+
+ 'Declare variable names and their types
+  
+  Dim YearSheet As Worksheet
+  Dim YearTabs(3) As String
+  Dim More As Boolean
+  Dim FirstCycle As Boolean
+  Dim Row As Long
+  Dim TickerCnt As Long
+  Dim Ticker As String
+  Dim HoldTicker As String
+  Dim OpenPrice As Double
+  Dim ClosingPrice As Double
+  Dim Volume As Double
+  
+  'Set years representing three worksheets to loop through
+  
+    YearTabs(0) = "2016"
+    YearTabs(1) = "2015"
+    YearTabs(2) = "2014"
+  
+    For x = 0 To 2
+  
+  'Set worksheets
+    
+         Set YearSheet = ThisWorkbook.Worksheets(YearTabs(x))
+         YearSheet.Activate
+         More = True
+         TickerCnt = 0
+         Row = 1
+         Ticker = ""
+         HoldTicker = ""
+         FirstCycle = True
+         Volume = 0
+         
+  'Set columns and their headings of output for Ticker, Yearly Change, Percent Change and Total Stock Volume
+         
+         Do While More = True
+            Row = Row + 1
+            If YearSheet.Cells(Row, 1).Value = "" Then More = False
+            Ticker = YearSheet.Cells(Row, 1).Value
+            If FirstCycle Then
+                TickerCnt = TickerCnt + 1
+                HoldTicker = Ticker
+                OpenPrice = YearSheet.Cells(Row, 3).Value
+                YearSheet.Cells(1, 9).Value = "Ticker"
+                YearSheet.Cells(1, 10).Value = "Yearly Change"
+                YearSheet.Cells(1, 11).Value = "Percent Change"
+                YearSheet.Cells(1, 12).Value = "Total Stock Volume"
+                FirstCycle = False
+            End If
+
+            If Ticker <> HoldTicker Then
+            
+  'Write results corresponding to columns created for output
+     
+                YearSheet.Cells(1 + TickerCnt, 9).Value = HoldTicker
+                If OpenPrice = 0 Or ClosingPrice = 0 Then
+                    YearSheet.Cells(1 + TickerCnt, 10).Value = 0
+                            
+                    YearSheet.Cells(1 + TickerCnt, 11).Value = 0
+                Else
+                    YearSheet.Cells(1 + TickerCnt, 10).Value = ClosingPrice - OpenPrice
+                    YearSheet.Cells(1 + TickerCnt, 11).Value = (YearSheet.Cells(1 + TickerCnt, 10).Value / OpenPrice) * 100
+                End If
+                    YearSheet.Cells(1 + TickerCnt, 12).Value = Volume
+                    
+       'Colour conditional formatting for yearly change output
+                             
+                        For Each cell In ActiveSheet.Range("J" & Rows.Count).End(xlUp)
+                                If cell.Value < 0 Then
+                                    cell.Interior.ColorIndex = 3
+                                ElseIf cell.Value > 0 Then
+                                    cell.Interior.ColorIndex = 4
+                                Else
+                                    cell.Interior.ColorIndex = xlNone
+                                End If
+        
+                                Next
+                                
+        'Number format for percent change output
+        
+                        For Each cell In ActiveSheet.Range("K" & Rows.Count).End(xlUp)
+                                If cell.Value <> 0 Then
+                                    cell.NumberFormat = "0.00\%"
+                                Else
+                                    cell.NumberFormat = xlNone
+                               End If
+                               
+                               Next
+                                                        
+                HoldTicker = Ticker
+                TickerCnt = TickerCnt + 1
+                OpenPrice = YearSheet.Cells(Row, 3).Value
+                Volume = 0
+                
+            End If
+
+            ClosingPrice = YearSheet.Cells(Row, 6).Value
+            Volume = Volume + YearSheet.Cells(Row, 7).Value
+            
+        'Loop through the next worksheet
+            
+        Loop
+    Next x
+
+        'Alert to notify user of the completion of the process
+        
+    MsgBox ("Done")
+    
+End Sub
+
+
+
+
